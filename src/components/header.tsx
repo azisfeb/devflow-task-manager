@@ -25,8 +25,8 @@ export function Header() {
                             className="h-2.5 w-2.5 rounded-full ring-2 ring-offset-1 ring-offset-background animate-pulse-subtle"
                             style={{
                                 backgroundColor: selectedProject.color,
-                                boxShadow: `0 0 8px ${selectedProject.color}60`,
-                                ringColor: selectedProject.color,
+                                boxShadow: `0 0 0 2px var(--tw-ring-color), 0 0 8px ${selectedProject.color}60`,
+                                ["--tw-ring-color" as any]: selectedProject.color,
                             }}
                         />
                         <h1 className="text-sm font-semibold tracking-tight">
@@ -52,7 +52,6 @@ export function Header() {
                 </ClerkLoading>
                 <ClerkLoaded>
                     <UserButton
-                        afterSignOutUrl="/sign-in"
                         appearance={{
                             elements: {
                                 avatarBox:

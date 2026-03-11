@@ -68,7 +68,7 @@ export function AddTaskForm({ projectId }: AddTaskFormProps) {
             />
 
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger>
                     <Button
                         type="button"
                         variant="ghost"
