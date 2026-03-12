@@ -41,17 +41,17 @@ type TaskItemProps = {
 const priorityConfig = {
     high: {
         label: "High",
-        color: "text-red-400 bg-red-400/10 border-red-400/20",
+        color: "text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20",
         icon: ArrowUp,
     },
     med: {
         label: "Med",
-        color: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+        color: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
         icon: ArrowRight,
     },
     low: {
         label: "Low",
-        color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+        color: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
         icon: ArrowDown,
     },
 };
@@ -61,12 +61,27 @@ const statusConfig = {
     in_progress: {
         label: "In Progress",
         icon: Loader2,
-        color: "text-blue-400",
+        color: "text-blue-600 dark:text-blue-300",
     },
     completed: {
         label: "Completed",
         icon: CheckCircle2,
-        color: "text-emerald-400",
+        color: "text-emerald-600 dark:text-emerald-300",
+    },
+};
+
+const statusCardConfig = {
+    pending: {
+        card: "border-border/30 bg-card/50 hover:border-border/60 hover:bg-card/80",
+        accent: "[box-shadow:inset_3px_0_0_rgb(194_194_194_/_0.75)]",
+    },
+    in_progress: {
+        card: "border-blue-400/30 bg-blue-500/[0.04] hover:border-blue-400/50 hover:bg-blue-500/[0.07]",
+        accent: "[box-shadow:inset_3px_0_0_rgb(96_165_250_/_0.75)]",
+    },
+    completed: {
+        card: "border-emerald-400/30 bg-emerald-500/[0.04] hover:border-emerald-400/50 hover:bg-emerald-500/[0.07]",
+        accent: "[box-shadow:inset_3px_0_0_rgb(52_211_153_/_0.75)]",
     },
 };
 
@@ -106,8 +121,10 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     className={cn(
-                        "group flex items-center gap-3 rounded-lg border border-border/30 bg-card/50 px-3 py-2.5 transition-all hover:border-border/60 hover:bg-card/80",
-                        task.isCompleted && "opacity-50",
+                        "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all",
+                        statusCardConfig[task.status].card,
+                        statusCardConfig[task.status].accent,
+                        task.isCompleted && "opacity-70",
                         snapshot.isDragging && "shadow-xl border-primary/50 bg-card z-50 ring-2 ring-primary/20"
                     )}
                     style={{
@@ -122,10 +139,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
 
                     <div className="flex-1 min-w-0">
                         <p
-                            className={cn(
-                                "text-sm leading-tight font-medium",
-                                task.isCompleted && "line-through text-muted-foreground"
-                            )}
+                            className="text-sm leading-tight font-medium"
                         >
                             {task.text}
                         </p>
@@ -146,7 +160,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                                 Created {new Date(task._creationTime).toLocaleDateString()}
                             </span>
                             {task.isCompleted && task.completedAt && (
-                                <span className="text-[10px] text-emerald-500/80 flex items-center gap-1">
+                                <span className="text-[10px] text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
                                     <CheckCircle2 className="h-2.5 w-2.5" />
                                     Completed {new Date(task.completedAt).toLocaleDateString()}
                                 </span>
@@ -154,7 +168,17 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                "h-5 gap-1 border px-1.5 text-[10px] font-medium",
+                                priority.color
+                            )}
+                        >
+                            <PriorityIcon className="h-2.5 w-2.5" />
+                            <span className="hidden sm:inline">{priority.label}</span>
+                        </Badge>
                         <Badge
                             variant="outline"
                             className={cn(
@@ -163,7 +187,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                             )}
                         >
                             <status.icon className="h-2.5 w-2.5" />
-                            {status.label}
+                            <span className="hidden sm:inline">{status.label}</span>
                         </Badge>
                     </div>
 

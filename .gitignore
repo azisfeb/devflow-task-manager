@@ -39,6 +39,9 @@ yarn-error.log*
 #convex
 .convex
 
+#github
+.github
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

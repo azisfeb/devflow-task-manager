@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+out
+
+# Environment files (never bake secrets into image)
+.env
+.env.*
+!.env.example
+
+# Version control
+.git
+.gitignore
+
+# Dev tooling
+.eslintrc*
+eslint.config.*
+*.md
+README*
+prd.md
+
+# Editor
+.vscode
+.idea
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+coverage
+__tests__
+*.test.ts
+*.spec.ts
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker files themselves (not needed in build context)
+Dockerfile*
+docker-compose*
+.dockerignore

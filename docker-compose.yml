@@ -12,21 +12,44 @@ services:
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
       - CLERK_JWT_ISSUER_DOMAIN=${CLERK_JWT_ISSUER_DOMAIN}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
 
-  # Development mode override
+  # ──── Development mode ────
+  # Usage: docker compose --profile dev up dev
   dev:
-    image: node:20-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Uses the deps stage — only installs node_modules, skips the production build.
+      # This makes `docker compose --profile dev up --build dev` fast.
+      target: deps
     working_dir: /app
     volumes:
+      # Mount source code so any file change is instantly visible inside the container
       - .:/app
+      # Preserve the container's node_modules — prevents the host folder from overriding it
       - /app/node_modules
+      # Preserve Next.js build cache between restarts
+      - nextjs_cache:/app/.next
     ports:
       - "3000:3000"
-    command: sh -c "npm install && npm run dev"
+    command: npm run dev
     environment:
+      - NODE_ENV=development
       - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       - NEXT_PUBLIC_CONVEX_URL=${NEXT_PUBLIC_CONVEX_URL}
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
       - CLERK_JWT_ISSUER_DOMAIN=${CLERK_JWT_ISSUER_DOMAIN}
+      # Required on macOS: Docker Desktop's virtual FS doesn't emit inotify events,
+      # so Next.js file watcher needs polling mode to detect changes.
+      - WATCHPACK_POLLING=true
     profiles:
       - dev
+
+volumes:
+  nextjs_cache:
