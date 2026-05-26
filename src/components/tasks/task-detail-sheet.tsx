@@ -188,12 +188,6 @@ export function TaskDetailSheet({
                                 </SheetTitle>
                             )}
                         </div>
-                        <button
-                            onClick={handleDelete}
-                            className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                        >
-                            <Trash2 className="h-3.5 w-3.5" />
-                        </button>
                     </div>
                 </SheetHeader>
 
@@ -364,6 +358,17 @@ export function TaskDetailSheet({
                     <p className="mt-2 text-[10px] text-muted-foreground/50">
                         Auto-saved on focus loss
                     </p>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-border/50 px-6 py-3">
+                    <button
+                        onClick={handleDelete}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete Task
+                    </button>
                 </div>
             </SheetContent>
         </Sheet>
