@@ -10,6 +10,15 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -72,6 +81,7 @@ export function TaskDetailSheet({
 
     const [titleValue, setTitleValue] = useState(task?.text ?? "");
     const [isTitleEditing, setIsTitleEditing] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const titleRef = useRef<HTMLTextAreaElement>(null);
 
     // Sync title when task changes
@@ -363,7 +373,7 @@ export function TaskDetailSheet({
                 {/* Footer */}
                 <div className="border-t border-border/50 px-6 py-3">
                     <button
-                        onClick={handleDelete}
+                        onClick={() => setDeleteDialogOpen(true)}
                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
                     >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -371,6 +381,31 @@ export function TaskDetailSheet({
                     </button>
                 </div>
             </SheetContent>
+
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent showCloseButton={false}>
+                    <DialogHeader>
+                        <DialogTitle>Delete task?</DialogTitle>
+                        <DialogDescription>
+                            &ldquo;{task.text}&rdquo; will be permanently deleted. This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={async () => {
+                                setDeleteDialogOpen(false);
+                                await handleDelete();
+                            }}
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Sheet>
     );
 }
