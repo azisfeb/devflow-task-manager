@@ -30,6 +30,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import { Draggable } from "@hello-pangea/dnd";
+import { useState } from "react";
+import { TaskDetailSheet } from "./task-detail-sheet";
 
 type TaskItemProps = {
     task: Doc<"tasks">;
@@ -91,6 +93,8 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
     const setPriority = useMutation(api.tasks.setPriority);
     const removeTask = useMutation(api.tasks.remove);
 
+    const [detailOpen, setDetailOpen] = useState(false);
+
     const project = projects.find((p) => p._id === task.projectId);
     const priority = priorityConfig[task.priority];
     const PriorityIcon = priority.icon;
@@ -116,12 +120,13 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
     return (
         <Draggable draggableId={task._id} index={index}>
             {(provided, snapshot) => (
+                <>
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                     className={cn(
-                        "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all",
+                        "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all cursor-pointer",
                         statusCardConfig[task.status].card,
                         statusCardConfig[task.status].accent,
                         task.isCompleted && "opacity-70",
@@ -130,10 +135,12 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     style={{
                         ...provided.draggableProps.style,
                     }}
+                    onClick={() => setDetailOpen(true)}
                 >
                     <Checkbox
                         checked={task.isCompleted}
                         onCheckedChange={handleToggle}
+                        onClick={(e) => e.stopPropagation()}
                         className="h-4.5 w-4.5 rounded-full border-muted-foreground/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                     />
 
@@ -192,7 +199,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     </div>
 
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger onClick={(e) => e.stopPropagation()}>
                             <div className="flex h-6 w-6 items-center justify-center rounded-md opacity-0 transition-all hover:bg-muted group-hover:opacity-100">
                                 <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
                             </div>
@@ -255,6 +262,14 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+                <TaskDetailSheet
+                    task={task}
+                    open={detailOpen}
+                    onOpenChange={setDetailOpen}
+                    projectName={project?.name}
+                    projectColor={project?.color}
+                />
+                </>
             )}
         </Draggable>
     );

@@ -28,6 +28,7 @@ export default defineSchema({
       v.literal("completed")
     ),
     completedAt: v.optional(v.number()),
+    description: v.optional(v.string()),
   })
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"])
