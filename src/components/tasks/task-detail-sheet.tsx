@@ -161,14 +161,15 @@ export function TaskDetailSheet({
     const PriorityIcon = priority.icon;
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
+        <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) setIsFullscreen(false); onOpenChange(nextOpen); }}>
             <SheetContent
                 side="right"
                 showCloseButton={false}
                 className={cn(
-                    "flex w-full flex-col gap-0 p-0 transition-all duration-200",
+                    "flex w-full flex-col gap-0 p-0 transition-[width,max-width] duration-300 ease-in-out",
                     isFullscreen ? "sm:max-w-full" : "sm:max-w-2xl"
                 )}
+                style={isFullscreen ? { width: "100vw", maxWidth: "100vw" } : undefined}
             >
                 {/* Header */}
                 <SheetHeader className="border-b border-border/40 bg-muted/20 px-6 py-4">
