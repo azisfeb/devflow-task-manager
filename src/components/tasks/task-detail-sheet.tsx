@@ -39,6 +39,9 @@ import {
     CheckCheck,
     Trash2,
     FolderOpen,
+    Maximize2,
+    Minimize2,
+    PanelRightClose,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -82,6 +85,7 @@ export function TaskDetailSheet({
     const [titleValue, setTitleValue] = useState(task?.text ?? "");
     const [isTitleEditing, setIsTitleEditing] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const titleRef = useRef<HTMLTextAreaElement>(null);
 
     // Sync title when task changes
@@ -160,12 +164,17 @@ export function TaskDetailSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side="right"
-                className="flex w-full flex-col gap-0 p-0 sm:max-w-lg"
+                showCloseButton={false}
+                className={cn(
+                    "flex w-full flex-col gap-0 p-0 transition-all duration-200",
+                    isFullscreen ? "sm:max-w-full" : "sm:max-w-2xl"
+                )}
             >
                 {/* Header */}
-                <SheetHeader className="border-b border-border/50 px-6 py-4">
+                <SheetHeader className="border-b border-border/40 bg-muted/20 px-6 py-4">
                     <div className="flex items-start gap-3">
-                        <div className="flex-1">
+                        {/* Title area */}
+                        <div className="flex-1 min-w-0 pt-0.5">
                             {isTitleEditing ? (
                                 <textarea
                                     ref={titleRef}
@@ -182,13 +191,13 @@ export function TaskDetailSheet({
                                             setIsTitleEditing(false);
                                         }
                                     }}
-                                    className="w-full resize-none bg-transparent text-base font-semibold leading-snug text-foreground focus:outline-none"
+                                    className="w-full resize-none bg-transparent text-xl font-semibold leading-snug text-foreground focus:outline-none"
                                     rows={2}
                                     autoFocus
                                 />
                             ) : (
                                 <SheetTitle
-                                    className="cursor-text text-left text-base font-semibold leading-snug hover:text-foreground/80"
+                                    className="cursor-text text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors"
                                     onClick={() => {
                                         setIsTitleEditing(true);
                                         setTimeout(() => titleRef.current?.focus(), 0);
@@ -198,11 +207,33 @@ export function TaskDetailSheet({
                                 </SheetTitle>
                             )}
                         </div>
+
+                        {/* Header action buttons */}
+                        <div className="flex items-center gap-0.5 shrink-0">
+                            <button
+                                onClick={() => setIsFullscreen((prev) => !prev)}
+                                title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                                {isFullscreen ? (
+                                    <Minimize2 className="h-3.5 w-3.5" />
+                                ) : (
+                                    <Maximize2 className="h-3.5 w-3.5" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => onOpenChange(false)}
+                                title="Close panel"
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                                <PanelRightClose className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
                     </div>
                 </SheetHeader>
 
-                {/* Meta */}
-                <div className="flex flex-wrap items-center gap-2 border-b border-border/50 px-6 py-3">
+                {/* Meta badges */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-border/40 px-6 py-3">
                     {/* Status */}
                     <DropdownMenu>
                         <DropdownMenuTrigger>
@@ -250,10 +281,10 @@ export function TaskDetailSheet({
                     </DropdownMenu>
                 </div>
 
-                {/* Details */}
-                <div className="flex flex-col gap-1 border-b border-border/50 px-6 py-3">
+                {/* Details row */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-border/40 bg-muted/10 px-6 py-3">
                     {projectName && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <FolderOpen className="h-3.5 w-3.5 shrink-0" />
                             <div className="flex items-center gap-1.5">
                                 {projectColor && (
@@ -262,30 +293,30 @@ export function TaskDetailSheet({
                                         style={{ backgroundColor: projectColor }}
                                     />
                                 )}
-                                <span>{projectName}</span>
+                                <span className="font-medium text-foreground/70">{projectName}</span>
                             </div>
                         </div>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-                        <span>Created {new Date(task._creationTime).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+                        <span>Created {new Date(task._creationTime).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
                     </div>
                     {task.completedAt && (
-                        <div className="flex items-center gap-2 text-xs text-emerald-500">
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-500">
                             <CheckCheck className="h-3.5 w-3.5 shrink-0" />
-                            <span>Completed {new Date(task.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+                            <span>Completed {new Date(task.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
                         </div>
                     )}
                 </div>
 
                 {/* Description editor */}
-                <div className="flex flex-1 flex-col overflow-y-auto px-6 py-4">
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                <div className="flex flex-1 flex-col overflow-y-auto px-6 py-5">
+                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                         Description
                     </p>
 
                     {/* Toolbar */}
-                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-md border border-border/50 bg-muted/10 p-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg border border-border/50 bg-muted/20 p-1.5">
                         {[
                             { label: "B", action: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), title: "Bold" },
                             { label: "I", action: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), title: "Italic" },
@@ -360,18 +391,18 @@ export function TaskDetailSheet({
 
                     {/* Editor area */}
                     <div
-                        className="flex-1 cursor-text rounded-md border border-border/40 bg-muted/5 px-3 py-2 transition-colors focus-within:border-border/80 focus-within:bg-background"
+                        className="flex-1 cursor-text rounded-lg border border-border/40 bg-muted/5 px-4 py-3 transition-colors focus-within:border-border/70 focus-within:bg-background"
                         onClick={() => editor?.commands.focus()}
                     >
                         <EditorContent editor={editor} />
                     </div>
-                    <p className="mt-2 text-[10px] text-muted-foreground/50">
+                    <p className="mt-2 text-[10px] text-muted-foreground/40">
                         Auto-saved on focus loss
                     </p>
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-border/50 px-6 py-3">
+                <div className="border-t border-border/40 bg-muted/10 px-6 py-4">
                     <button
                         onClick={() => setDeleteDialogOpen(true)}
                         className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
