@@ -11,9 +11,30 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const COLUMNS = [
-    { id: "pending", title: "Pending", icon: Clock, color: "text-muted-foreground" },
-    { id: "in_progress", title: "In Progress", icon: Loader2, color: "text-blue-400" },
-    { id: "completed", title: "Completed", icon: CheckCircle2, color: "text-emerald-400" },
+    {
+        id: "pending",
+        title: "Pending",
+        icon: Clock,
+        color: "text-muted-foreground",
+        wrapperColor: "border-border/50 bg-muted/5",
+        wrapperDragColor: "bg-muted/10 border-muted-foreground/30",
+    },
+    {
+        id: "in_progress",
+        title: "In Progress",
+        icon: Loader2,
+        color: "text-blue-400",
+        wrapperColor: "border-blue-400/20 bg-blue-500/[0.03]",
+        wrapperDragColor: "bg-blue-500/[0.07] border-blue-400/40",
+    },
+    {
+        id: "completed",
+        title: "Completed",
+        icon: CheckCircle2,
+        color: "text-emerald-400",
+        wrapperColor: "border-emerald-400/20 bg-emerald-500/[0.03]",
+        wrapperDragColor: "bg-emerald-500/[0.07] border-emerald-400/40",
+    },
 ] as const;
 
 export function TaskList() {
@@ -115,8 +136,9 @@ export function TaskList() {
                                             {...provided.droppableProps}
                                             ref={provided.innerRef}
                                             className={cn(
-                                                "flex flex-1 flex-col gap-3 rounded-xl border border-dashed border-border/50 bg-muted/5 p-2 transition-colors",
-                                                snapshot.isDraggingOver && "bg-muted/10 border-primary/20"
+                                                "flex flex-1 flex-col gap-3 rounded-xl border border-dashed p-2 transition-colors",
+                                                column.wrapperColor,
+                                                snapshot.isDraggingOver && column.wrapperDragColor
                                             )}
                                         >
                                             {columnTasks.map((task, index) => (
