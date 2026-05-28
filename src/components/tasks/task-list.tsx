@@ -92,10 +92,10 @@ export function TaskList() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="flex h-full flex-col gap-6">
             {/* Add Task */}
             {selectedProjectId && (
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto w-full max-w-3xl flex-shrink-0">
                     <AddTaskForm projectId={selectedProjectId} />
                 </div>
             )}
@@ -115,13 +115,13 @@ export function TaskList() {
             )}
 
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex gap-6 overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex min-h-0 flex-1 gap-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
                     {COLUMNS.map((column) => {
                         const columnTasks = tasks.filter((t) => t.status === column.id);
 
                         return (
-                            <div key={column.id} className="flex min-w-[320px] flex-1 flex-col gap-4">
-                                <div className="flex items-center justify-between px-1">
+                            <div key={column.id} className="flex min-h-0 min-w-[320px] flex-1 flex-col gap-4">
+                                <div className="flex flex-shrink-0 items-center justify-between px-1">
                                     <div className="flex items-center gap-2">
                                         <column.icon className={cn("h-4 w-4", column.color)} />
                                         <h2 className="text-sm font-semibold text-foreground/80">
@@ -139,7 +139,7 @@ export function TaskList() {
                                             {...provided.droppableProps}
                                             ref={provided.innerRef}
                                             className={cn(
-                                                "flex flex-1 flex-col gap-3 rounded-xl border border-dashed p-2 transition-colors overflow-y-auto max-h-[calc(100vh-280px)]",
+                                                "flex min-h-0 flex-1 flex-col gap-3 rounded-xl border border-dashed p-2 transition-colors overflow-y-auto",
                                                 column.wrapperColor,
                                                 column.scrollbarClass,
                                                 snapshot.isDraggingOver && column.wrapperDragColor
@@ -173,7 +173,7 @@ export function TaskList() {
             </DragDropContext>
 
             {tasks.length === 0 && selectedProjectId && (
-                <div className="flex flex-col items-center justify-center py-16">
+                <div className="flex flex-shrink-0 flex-col items-center justify-center py-16">
                     <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/30">
                         <ClipboardList className="h-7 w-7 text-muted-foreground/30" />
                     </div>
