@@ -136,7 +136,7 @@ export function TaskList() {
                                             {...provided.droppableProps}
                                             ref={provided.innerRef}
                                             className={cn(
-                                                "flex flex-1 flex-col gap-3 rounded-xl border border-dashed p-2 transition-colors",
+                                                "flex flex-1 flex-col gap-3 rounded-xl border border-dashed p-2 transition-colors overflow-y-auto max-h-[calc(100vh-280px)]",
                                                 column.wrapperColor,
                                                 snapshot.isDraggingOver && column.wrapperDragColor
                                             )}
