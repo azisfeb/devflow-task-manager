@@ -150,6 +150,30 @@
   background: oklch(0.4 0.02 260);
 }
 
+/* Pending — neutral/muted */
+.scrollbar-pending::-webkit-scrollbar-thumb {
+  background: oklch(0.45 0.02 260 / 0.5);
+}
+.scrollbar-pending::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.02 260 / 0.7);
+}
+
+/* In Progress — blue */
+.scrollbar-in-progress::-webkit-scrollbar-thumb {
+  background: oklch(0.65 0.18 230 / 0.5);
+}
+.scrollbar-in-progress::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.65 0.18 230 / 0.8);
+}
+
+/* Completed — emerald */
+.scrollbar-completed::-webkit-scrollbar-thumb {
+  background: oklch(0.68 0.18 160 / 0.5);
+}
+.scrollbar-completed::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.68 0.18 160 / 0.8);
+}
+
 /* ──── Glow Effects ──── */
 .glow-violet {
   box-shadow: 0 0 20px oklch(0.72 0.16 280 / 15%), 0 0 60px oklch(0.72 0.16 280 / 5%);
