@@ -18,6 +18,7 @@ const COLUMNS = [
         color: "text-muted-foreground",
         wrapperColor: "border-border/50 bg-muted/5",
         wrapperDragColor: "bg-muted/10 border-muted-foreground/30",
+        scrollbarClass: "scrollbar-pending",
     },
     {
         id: "in_progress",
@@ -26,6 +27,7 @@ const COLUMNS = [
         color: "text-blue-400",
         wrapperColor: "border-blue-400/20 bg-blue-500/[0.03]",
         wrapperDragColor: "bg-blue-500/[0.07] border-blue-400/40",
+        scrollbarClass: "scrollbar-in-progress",
     },
     {
         id: "completed",
@@ -34,6 +36,7 @@ const COLUMNS = [
         color: "text-emerald-400",
         wrapperColor: "border-emerald-400/20 bg-emerald-500/[0.03]",
         wrapperDragColor: "bg-emerald-500/[0.07] border-emerald-400/40",
+        scrollbarClass: "scrollbar-completed",
     },
 ] as const;
 
@@ -138,6 +141,7 @@ export function TaskList() {
                                             className={cn(
                                                 "flex flex-1 flex-col gap-3 rounded-xl border border-dashed p-2 transition-colors overflow-y-auto max-h-[calc(100vh-280px)]",
                                                 column.wrapperColor,
+                                                column.scrollbarClass,
                                                 snapshot.isDraggingOver && column.wrapperDragColor
                                             )}
                                         >
