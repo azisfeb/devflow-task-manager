@@ -90,21 +90,28 @@ export function TaskDetailSheet({
     const titleRef = useRef<HTMLTextAreaElement>(null);
 
     const [prevTaskId, setPrevTaskId] = useState(task?._id);
+    const [prevTaskText, setPrevTaskText] = useState(task?.text);
+
     if (task?._id !== prevTaskId) {
         setPrevTaskId(task?._id);
+        setPrevTaskText(task?.text);
         setTitleValue(task?.text ?? "");
-        if (task?.isCancelled) {
-            setIsTitleEditing(false);
+        setIsTitleEditing(false);
+    } else if (task?.text !== prevTaskText) {
+        setPrevTaskText(task?.text);
+        if (!isTitleEditing) {
+            setTitleValue(task?.text ?? "");
         }
     }
 
     const handleToggleCancel = async () => {
         if (!task) return;
+        const isRestoring = task.isCancelled;
         try {
             await toggleCancel({ id: task._id });
-            toast.success(task.isCancelled ? "Task restored" : "Task cancelled");
+            toast.success(isRestoring ? "Task restored" : "Task cancelled");
         } catch {
-            toast.error(task.isCancelled ? "Failed to restore task" : "Failed to cancel task");
+            toast.error(isRestoring ? "Failed to restore task" : "Failed to cancel task");
         }
     };
 
@@ -199,7 +206,7 @@ export function TaskDetailSheet({
                     <div className="flex items-start gap-3">
                         {/* Title area */}
                         <div className="flex-1 min-w-0 pt-0.5">
-                            {isTitleEditing ? (
+                            {isTitleEditing && !task.isCancelled ? (
                                 <textarea
                                     ref={titleRef}
                                     value={titleValue}

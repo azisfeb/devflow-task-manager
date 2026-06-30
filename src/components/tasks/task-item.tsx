@@ -120,11 +120,12 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
     };
 
     const handleToggleCancel = async () => {
+        const isRestoring = task.isCancelled;
         try {
             await toggleCancel({ id: task._id });
-            toast.success(task.isCancelled ? "Task restored" : "Task cancelled");
+            toast.success(isRestoring ? "Task restored" : "Task cancelled");
         } catch {
-            toast.error(task.isCancelled ? "Failed to restore task" : "Failed to cancel task");
+            toast.error(isRestoring ? "Failed to restore task" : "Failed to cancel task");
         }
     };
 
@@ -139,7 +140,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     className={cn(
                         "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all cursor-pointer",
                         task.isCancelled 
-                            ? "border-muted/50 bg-muted/10 opacity-60 hover:opacity-80 [box-shadow:none]"
+                            ? "border-dashed border-muted/50 bg-muted/10 opacity-60 hover:opacity-80 [box-shadow:none]"
                             : statusCardConfig[task.status].card,
                         !task.isCancelled && statusCardConfig[task.status].accent,
                         task.isCompleted && !task.isCancelled && "opacity-70",
