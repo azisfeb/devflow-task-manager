@@ -19,7 +19,6 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
     DropdownMenu,
@@ -90,6 +89,15 @@ export function TaskDetailSheet({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const titleRef = useRef<HTMLTextAreaElement>(null);
 
+    const [prevTaskId, setPrevTaskId] = useState(task?._id);
+    if (task?._id !== prevTaskId) {
+        setPrevTaskId(task?._id);
+        setTitleValue(task?.text ?? "");
+        if (task?.isCancelled) {
+            setIsTitleEditing(false);
+        }
+    }
+
     const handleToggleCancel = async () => {
         if (!task) return;
         try {
@@ -100,13 +108,7 @@ export function TaskDetailSheet({
         }
     };
 
-    // Sync title when task changes
-    useEffect(() => {
-        setTitleValue(task?.text ?? "");
-        if (task?.isCancelled) {
-            setIsTitleEditing(false);
-        }
-    }, [task?._id, task?.text, task?.isCancelled]);
+
 
     const editor = useEditor({
         extensions: [
@@ -134,14 +136,14 @@ export function TaskDetailSheet({
 
     // Reset editor content when a different task opens
     useEffect(() => {
-        if (editor && task) {
+        if (editor && task?._id) {
             const currentHtml = editor.getHTML();
-            const newHtml = task.description ?? "";
+            const newHtml = task?.description ?? "";
             if (currentHtml !== newHtml) {
                 editor.commands.setContent(newHtml);
             }
         }
-    }, [task?._id]);
+    }, [task?._id, task?.description, editor]);
 
     useEffect(() => {
         if (editor) {
