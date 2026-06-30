@@ -42,6 +42,7 @@ import {
     Maximize2,
     Minimize2,
     PanelRightClose,
+    XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,12 +82,23 @@ export function TaskDetailSheet({
     const updateStatus = useMutation(api.tasks.updateStatus);
     const setPriority = useMutation(api.tasks.setPriority);
     const removeTask = useMutation(api.tasks.remove);
+    const toggleCancel = useMutation(api.tasks.toggleCancel);
 
     const [titleValue, setTitleValue] = useState(task?.text ?? "");
     const [isTitleEditing, setIsTitleEditing] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const titleRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleToggleCancel = async () => {
+        if (!task) return;
+        try {
+            await toggleCancel({ id: task._id });
+            toast.success(task.isCancelled ? "Task restored" : "Task cancelled");
+        } catch {
+            toast.error(task.isCancelled ? "Failed to restore task" : "Failed to cancel task");
+        }
+    };
 
     // Sync title when task changes
     useEffect(() => {
@@ -198,7 +210,10 @@ export function TaskDetailSheet({
                                 />
                             ) : (
                                 <SheetTitle
-                                    className="cursor-text text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors"
+                                    className={cn(
+                                        "cursor-text text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors",
+                                        task.isCancelled && "line-through text-muted-foreground/60"
+                                    )}
                                     onClick={() => {
                                         setIsTitleEditing(true);
                                         setTimeout(() => titleRef.current?.focus(), 0);
@@ -310,6 +325,23 @@ export function TaskDetailSheet({
                     )}
                 </div>
 
+                {task.isCancelled && (
+                    <div className="flex items-center justify-between gap-4 border-b border-rose-500/20 bg-rose-500/5 px-6 py-2.5 text-xs text-rose-500 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4" />
+                            <span>This task has been cancelled.</span>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:text-rose-500"
+                            onClick={handleToggleCancel}
+                        >
+                            Restore
+                        </Button>
+                    </div>
+                )}
+
                 {/* Description editor */}
                 <div className="flex flex-1 flex-col overflow-y-auto px-6 py-5">
                     <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
@@ -403,10 +435,22 @@ export function TaskDetailSheet({
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-border/40 bg-muted/10 px-6 py-4">
+                <div className="flex gap-3 border-t border-border/40 bg-muted/10 px-6 py-4">
+                    <button
+                        onClick={handleToggleCancel}
+                        className={cn(
+                            "flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium transition-colors",
+                            task.isCancelled
+                                ? "border-muted-foreground/20 bg-muted-foreground/5 text-muted-foreground hover:bg-muted-foreground/10"
+                                : "border-amber-500/20 bg-amber-500/5 text-amber-500 hover:bg-amber-500/10"
+                        )}
+                    >
+                        <XCircle className="h-3.5 w-3.5" />
+                        {task.isCancelled ? "Restore Task" : "Cancel Task"}
+                    </button>
                     <button
                         onClick={() => setDeleteDialogOpen(true)}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
                     >
                         <Trash2 className="h-3.5 w-3.5" />
                         Delete Task
