@@ -140,7 +140,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     className={cn(
                         "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all cursor-pointer",
                         task.isCancelled 
-                            ? "border-dashed border-muted/50 bg-muted/10 opacity-60 hover:opacity-80 [box-shadow:none]"
+                            ? "border-dashed border-rose-500/30 bg-rose-500/[0.02] dark:border-rose-500/20 opacity-60 hover:opacity-80 [box-shadow:none]"
                             : statusCardConfig[task.status].card,
                         !task.isCancelled && statusCardConfig[task.status].accent,
                         task.isCompleted && !task.isCancelled && "opacity-70",
