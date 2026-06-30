@@ -2,7 +2,7 @@
 
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Doc, Id } from "../../../convex/_generated/dataModel";
+import { Doc } from "../../../convex/_generated/dataModel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -119,6 +119,15 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
         }
     };
 
+    const handleToggleCancel = async () => {
+        try {
+            await toggleCancel({ id: task._id });
+            toast.success(task.isCancelled ? "Task restored" : "Task cancelled");
+        } catch {
+            toast.error(task.isCancelled ? "Failed to restore task" : "Failed to cancel task");
+        }
+    };
+
     return (
         <Draggable draggableId={task._id} index={index}>
             {(provided, snapshot) => (
@@ -214,7 +223,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuSub>
-                                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                                <DropdownMenuSubTrigger className="gap-2 text-xs" disabled={task.isCancelled}>
                                     <status.icon className={cn("h-3.5 w-3.5", status.color)} />
                                     Status
                                 </DropdownMenuSubTrigger>
@@ -237,7 +246,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
                             <DropdownMenuSub>
-                                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                                <DropdownMenuSubTrigger className="gap-2 text-xs" disabled={task.isCancelled}>
                                     <PriorityIcon className="h-3.5 w-3.5" />
                                     Priority
                                 </DropdownMenuSubTrigger>
@@ -264,7 +273,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                                 className="gap-2 text-xs"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleCancel({ id: task._id });
+                                    handleToggleCancel();
                                 }}
                             >
                                 <XCircle className="h-3.5 w-3.5" />
