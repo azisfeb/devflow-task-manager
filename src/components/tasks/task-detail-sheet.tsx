@@ -103,7 +103,10 @@ export function TaskDetailSheet({
     // Sync title when task changes
     useEffect(() => {
         setTitleValue(task?.text ?? "");
-    }, [task?._id, task?.text]);
+        if (task?.isCancelled) {
+            setIsTitleEditing(false);
+        }
+    }, [task?._id, task?.text, task?.isCancelled]);
 
     const editor = useEditor({
         extensions: [
@@ -260,7 +263,7 @@ export function TaskDetailSheet({
                 <div className="flex flex-wrap items-center gap-2 border-b border-border/40 px-6 py-3">
                     {/* Status */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger disabled={task.isCancelled}>
                             <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge, task.isCancelled && "pointer-events-none opacity-50")}>
                                 <StatusIcon className="h-3 w-3" />
                                 {status.label}
@@ -283,7 +286,7 @@ export function TaskDetailSheet({
 
                     {/* Priority */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
+                        <DropdownMenuTrigger disabled={task.isCancelled}>
                             <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge, task.isCancelled && "pointer-events-none opacity-50")}>
                                 <PriorityIcon className="h-3 w-3" />
                                 {priority.label}
@@ -357,78 +360,80 @@ export function TaskDetailSheet({
                     </p>
 
                     {/* Toolbar */}
-                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg border border-border/50 bg-muted/20 p-1.5">
-                        {[
-                            { label: "B", action: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), title: "Bold" },
-                            { label: "I", action: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), title: "Italic" },
-                            { label: "S", action: () => editor?.chain().focus().toggleStrike().run(), active: editor?.isActive("strike"), title: "Strikethrough" },
-                        ].map((btn) => (
+                    {!task.isCancelled && (
+                        <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg border border-border/50 bg-muted/20 p-1.5">
+                            {[
+                                { label: "B", action: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), title: "Bold" },
+                                { label: "I", action: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), title: "Italic" },
+                                { label: "S", action: () => editor?.chain().focus().toggleStrike().run(), active: editor?.isActive("strike"), title: "Strikethrough" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.label}
+                                    title={btn.title}
+                                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                    className={cn(
+                                        "flex h-6 w-6 items-center justify-center rounded text-xs font-semibold transition-colors",
+                                        btn.active
+                                            ? "bg-foreground/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                                    )}
+                                >
+                                    {btn.label}
+                                </button>
+                             ))}
+                            <Separator orientation="vertical" className="h-4" />
+                            {[
+                                { label: "H1", action: () => editor?.chain().focus().toggleHeading({ level: 1 }).run(), active: editor?.isActive("heading", { level: 1 }), title: "Heading 1" },
+                                { label: "H2", action: () => editor?.chain().focus().toggleHeading({ level: 2 }).run(), active: editor?.isActive("heading", { level: 2 }), title: "Heading 2" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.label}
+                                    title={btn.title}
+                                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                    className={cn(
+                                        "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-semibold transition-colors",
+                                        btn.active
+                                            ? "bg-foreground/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                                    )}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                            <Separator orientation="vertical" className="h-4" />
+                            {[
+                                { label: "• List", action: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive("bulletList"), title: "Bullet List" },
+                                { label: "1. List", action: () => editor?.chain().focus().toggleOrderedList().run(), active: editor?.isActive("orderedList"), title: "Ordered List" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.label}
+                                    title={btn.title}
+                                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                    className={cn(
+                                        "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-medium transition-colors",
+                                        btn.active
+                                            ? "bg-foreground/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                                    )}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                            <Separator orientation="vertical" className="h-4" />
                             <button
-                                key={btn.label}
-                                title={btn.title}
-                                onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                title="Code Block"
+                                onMouseDown={(e) => { e.preventDefault(); editor?.chain().focus().toggleCodeBlock().run(); }}
                                 className={cn(
-                                    "flex h-6 w-6 items-center justify-center rounded text-xs font-semibold transition-colors",
-                                    btn.active
+                                    "flex h-6 items-center justify-center rounded px-1.5 font-mono text-[10px] transition-colors",
+                                    editor?.isActive("codeBlock")
                                         ? "bg-foreground/10 text-foreground"
                                         : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
                                 )}
                             >
-                                {btn.label}
+                                {"</>"}
                             </button>
-                        ))}
-                        <Separator orientation="vertical" className="h-4" />
-                        {[
-                            { label: "H1", action: () => editor?.chain().focus().toggleHeading({ level: 1 }).run(), active: editor?.isActive("heading", { level: 1 }), title: "Heading 1" },
-                            { label: "H2", action: () => editor?.chain().focus().toggleHeading({ level: 2 }).run(), active: editor?.isActive("heading", { level: 2 }), title: "Heading 2" },
-                        ].map((btn) => (
-                            <button
-                                key={btn.label}
-                                title={btn.title}
-                                onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
-                                className={cn(
-                                    "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-semibold transition-colors",
-                                    btn.active
-                                        ? "bg-foreground/10 text-foreground"
-                                        : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                                )}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                        <Separator orientation="vertical" className="h-4" />
-                        {[
-                            { label: "• List", action: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive("bulletList"), title: "Bullet List" },
-                            { label: "1. List", action: () => editor?.chain().focus().toggleOrderedList().run(), active: editor?.isActive("orderedList"), title: "Ordered List" },
-                        ].map((btn) => (
-                            <button
-                                key={btn.label}
-                                title={btn.title}
-                                onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
-                                className={cn(
-                                    "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-medium transition-colors",
-                                    btn.active
-                                        ? "bg-foreground/10 text-foreground"
-                                        : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                                )}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                        <Separator orientation="vertical" className="h-4" />
-                        <button
-                            title="Code Block"
-                            onMouseDown={(e) => { e.preventDefault(); editor?.chain().focus().toggleCodeBlock().run(); }}
-                            className={cn(
-                                "flex h-6 items-center justify-center rounded px-1.5 font-mono text-[10px] transition-colors",
-                                editor?.isActive("codeBlock")
-                                    ? "bg-foreground/10 text-foreground"
-                                    : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                            )}
-                        >
-                            {"</>"}
-                        </button>
-                    </div>
+                        </div>
+                    )}
 
                     {/* Editor area */}
                     <div
