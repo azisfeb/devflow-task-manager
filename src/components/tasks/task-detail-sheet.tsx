@@ -19,7 +19,6 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
     DropdownMenu,
@@ -42,6 +41,7 @@ import {
     Maximize2,
     Minimize2,
     PanelRightClose,
+    XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -81,6 +81,7 @@ export function TaskDetailSheet({
     const updateStatus = useMutation(api.tasks.updateStatus);
     const setPriority = useMutation(api.tasks.setPriority);
     const removeTask = useMutation(api.tasks.remove);
+    const toggleCancel = useMutation(api.tasks.toggleCancel);
 
     const [titleValue, setTitleValue] = useState(task?.text ?? "");
     const [isTitleEditing, setIsTitleEditing] = useState(false);
@@ -88,10 +89,33 @@ export function TaskDetailSheet({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const titleRef = useRef<HTMLTextAreaElement>(null);
 
-    // Sync title when task changes
-    useEffect(() => {
+    const [prevTaskId, setPrevTaskId] = useState(task?._id);
+    const [prevTaskText, setPrevTaskText] = useState(task?.text);
+
+    if (task?._id !== prevTaskId) {
+        setPrevTaskId(task?._id);
+        setPrevTaskText(task?.text);
         setTitleValue(task?.text ?? "");
-    }, [task?._id, task?.text]);
+        setIsTitleEditing(false);
+    } else if (task?.text !== prevTaskText) {
+        setPrevTaskText(task?.text);
+        if (!isTitleEditing) {
+            setTitleValue(task?.text ?? "");
+        }
+    }
+
+    const handleToggleCancel = async () => {
+        if (!task) return;
+        const isRestoring = task.isCancelled;
+        try {
+            await toggleCancel({ id: task._id });
+            toast.success(isRestoring ? "Task restored" : "Task cancelled");
+        } catch {
+            toast.error(isRestoring ? "Failed to restore task" : "Failed to cancel task");
+        }
+    };
+
+
 
     const editor = useEditor({
         extensions: [
@@ -119,14 +143,20 @@ export function TaskDetailSheet({
 
     // Reset editor content when a different task opens
     useEffect(() => {
-        if (editor && task) {
+        if (editor && task?._id) {
             const currentHtml = editor.getHTML();
-            const newHtml = task.description ?? "";
+            const newHtml = task?.description ?? "";
             if (currentHtml !== newHtml) {
                 editor.commands.setContent(newHtml);
             }
         }
-    }, [task?._id]);
+    }, [task?._id, task?.description, editor]);
+
+    useEffect(() => {
+        if (editor) {
+            editor.setEditable(!task?.isCancelled);
+        }
+    }, [editor, task?.isCancelled]);
 
     const handleTitleSave = async () => {
         if (!task || titleValue.trim() === task.text) {
@@ -176,7 +206,7 @@ export function TaskDetailSheet({
                     <div className="flex items-start gap-3">
                         {/* Title area */}
                         <div className="flex-1 min-w-0 pt-0.5">
-                            {isTitleEditing ? (
+                            {isTitleEditing && !task.isCancelled ? (
                                 <textarea
                                     ref={titleRef}
                                     value={titleValue}
@@ -198,8 +228,13 @@ export function TaskDetailSheet({
                                 />
                             ) : (
                                 <SheetTitle
-                                    className="cursor-text text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors"
+                                    className={cn(
+                                        "text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors",
+                                        task.isCancelled ? "cursor-default" : "cursor-text",
+                                        task.isCancelled && "line-through text-muted-foreground/60"
+                                    )}
                                     onClick={() => {
+                                        if (task.isCancelled) return;
                                         setIsTitleEditing(true);
                                         setTimeout(() => titleRef.current?.focus(), 0);
                                     }}
@@ -237,8 +272,8 @@ export function TaskDetailSheet({
                 <div className="flex flex-wrap items-center gap-2 border-b border-border/40 px-6 py-3">
                     {/* Status */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge)}>
+                        <DropdownMenuTrigger disabled={task.isCancelled}>
+                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge, task.isCancelled && "pointer-events-none opacity-50")}>
                                 <StatusIcon className="h-3 w-3" />
                                 {status.label}
                                 <ChevronDown className="h-2.5 w-2.5 opacity-60" />
@@ -260,8 +295,8 @@ export function TaskDetailSheet({
 
                     {/* Priority */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge)}>
+                        <DropdownMenuTrigger disabled={task.isCancelled}>
+                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge, task.isCancelled && "pointer-events-none opacity-50")}>
                                 <PriorityIcon className="h-3 w-3" />
                                 {priority.label}
                                 <ChevronDown className="h-2.5 w-2.5 opacity-60" />
@@ -310,6 +345,23 @@ export function TaskDetailSheet({
                     )}
                 </div>
 
+                {task.isCancelled && (
+                    <div className="flex items-center justify-between gap-4 border-b border-rose-500/20 bg-rose-500/5 px-6 py-2.5 text-xs text-rose-500 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4" />
+                            <span>This task has been cancelled.</span>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:text-rose-500"
+                            onClick={handleToggleCancel}
+                        >
+                            Restore
+                        </Button>
+                    </div>
+                )}
+
                 {/* Description editor */}
                 <div className="flex flex-1 flex-col overflow-y-auto px-6 py-5">
                     <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">
@@ -317,82 +369,89 @@ export function TaskDetailSheet({
                     </p>
 
                     {/* Toolbar */}
-                    <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg border border-border/50 bg-muted/20 p-1.5">
-                        {[
-                            { label: "B", action: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), title: "Bold" },
-                            { label: "I", action: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), title: "Italic" },
-                            { label: "S", action: () => editor?.chain().focus().toggleStrike().run(), active: editor?.isActive("strike"), title: "Strikethrough" },
-                        ].map((btn) => (
+                    {!task.isCancelled && (
+                        <div className="mb-2 flex flex-wrap items-center gap-1 rounded-lg border border-border/50 bg-muted/20 p-1.5">
+                            {[
+                                { label: "B", action: () => editor?.chain().focus().toggleBold().run(), active: editor?.isActive("bold"), title: "Bold" },
+                                { label: "I", action: () => editor?.chain().focus().toggleItalic().run(), active: editor?.isActive("italic"), title: "Italic" },
+                                { label: "S", action: () => editor?.chain().focus().toggleStrike().run(), active: editor?.isActive("strike"), title: "Strikethrough" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.label}
+                                    title={btn.title}
+                                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                    className={cn(
+                                        "flex h-6 w-6 items-center justify-center rounded text-xs font-semibold transition-colors",
+                                        btn.active
+                                            ? "bg-foreground/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                                    )}
+                                >
+                                    {btn.label}
+                                </button>
+                             ))}
+                            <Separator orientation="vertical" className="h-4" />
+                            {[
+                                { label: "H1", action: () => editor?.chain().focus().toggleHeading({ level: 1 }).run(), active: editor?.isActive("heading", { level: 1 }), title: "Heading 1" },
+                                { label: "H2", action: () => editor?.chain().focus().toggleHeading({ level: 2 }).run(), active: editor?.isActive("heading", { level: 2 }), title: "Heading 2" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.label}
+                                    title={btn.title}
+                                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                    className={cn(
+                                        "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-semibold transition-colors",
+                                        btn.active
+                                            ? "bg-foreground/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                                    )}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                            <Separator orientation="vertical" className="h-4" />
+                            {[
+                                { label: "• List", action: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive("bulletList"), title: "Bullet List" },
+                                { label: "1. List", action: () => editor?.chain().focus().toggleOrderedList().run(), active: editor?.isActive("orderedList"), title: "Ordered List" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.label}
+                                    title={btn.title}
+                                    onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                    className={cn(
+                                        "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-medium transition-colors",
+                                        btn.active
+                                            ? "bg-foreground/10 text-foreground"
+                                            : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                                    )}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                            <Separator orientation="vertical" className="h-4" />
                             <button
-                                key={btn.label}
-                                title={btn.title}
-                                onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
+                                title="Code Block"
+                                onMouseDown={(e) => { e.preventDefault(); editor?.chain().focus().toggleCodeBlock().run(); }}
                                 className={cn(
-                                    "flex h-6 w-6 items-center justify-center rounded text-xs font-semibold transition-colors",
-                                    btn.active
+                                    "flex h-6 items-center justify-center rounded px-1.5 font-mono text-[10px] transition-colors",
+                                    editor?.isActive("codeBlock")
                                         ? "bg-foreground/10 text-foreground"
                                         : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
                                 )}
                             >
-                                {btn.label}
+                                {"</>"}
                             </button>
-                        ))}
-                        <Separator orientation="vertical" className="h-4" />
-                        {[
-                            { label: "H1", action: () => editor?.chain().focus().toggleHeading({ level: 1 }).run(), active: editor?.isActive("heading", { level: 1 }), title: "Heading 1" },
-                            { label: "H2", action: () => editor?.chain().focus().toggleHeading({ level: 2 }).run(), active: editor?.isActive("heading", { level: 2 }), title: "Heading 2" },
-                        ].map((btn) => (
-                            <button
-                                key={btn.label}
-                                title={btn.title}
-                                onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
-                                className={cn(
-                                    "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-semibold transition-colors",
-                                    btn.active
-                                        ? "bg-foreground/10 text-foreground"
-                                        : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                                )}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                        <Separator orientation="vertical" className="h-4" />
-                        {[
-                            { label: "• List", action: () => editor?.chain().focus().toggleBulletList().run(), active: editor?.isActive("bulletList"), title: "Bullet List" },
-                            { label: "1. List", action: () => editor?.chain().focus().toggleOrderedList().run(), active: editor?.isActive("orderedList"), title: "Ordered List" },
-                        ].map((btn) => (
-                            <button
-                                key={btn.label}
-                                title={btn.title}
-                                onMouseDown={(e) => { e.preventDefault(); btn.action(); }}
-                                className={cn(
-                                    "flex h-6 items-center justify-center rounded px-1.5 text-[10px] font-medium transition-colors",
-                                    btn.active
-                                        ? "bg-foreground/10 text-foreground"
-                                        : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                                )}
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                        <Separator orientation="vertical" className="h-4" />
-                        <button
-                            title="Code Block"
-                            onMouseDown={(e) => { e.preventDefault(); editor?.chain().focus().toggleCodeBlock().run(); }}
-                            className={cn(
-                                "flex h-6 items-center justify-center rounded px-1.5 font-mono text-[10px] transition-colors",
-                                editor?.isActive("codeBlock")
-                                    ? "bg-foreground/10 text-foreground"
-                                    : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                            )}
-                        >
-                            {"</>"}
-                        </button>
-                    </div>
+                        </div>
+                    )}
 
                     {/* Editor area */}
                     <div
-                        className="flex-1 cursor-text rounded-lg border border-border/40 bg-muted/5 px-4 py-3 transition-colors focus-within:border-border/70 focus-within:bg-background"
+                        className={cn(
+                            "flex-1 rounded-lg border px-4 py-3 transition-colors",
+                            task.isCancelled
+                                ? "border-border/20 bg-muted/5 pointer-events-none opacity-60"
+                                : "cursor-text border-border/40 bg-muted/5 focus-within:border-border/70 focus-within:bg-background"
+                        )}
                         onClick={() => editor?.commands.focus()}
                     >
                         <EditorContent editor={editor} />
@@ -403,10 +462,22 @@ export function TaskDetailSheet({
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-border/40 bg-muted/10 px-6 py-4">
+                <div className="flex gap-3 border-t border-border/40 bg-muted/10 px-6 py-4">
+                    <button
+                        onClick={handleToggleCancel}
+                        className={cn(
+                            "flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium transition-colors",
+                            task.isCancelled
+                                ? "border-muted-foreground/20 bg-muted-foreground/5 text-muted-foreground hover:bg-muted-foreground/10"
+                                : "border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10"
+                        )}
+                    >
+                        <XCircle className="h-3.5 w-3.5" />
+                        {task.isCancelled ? "Restore Task" : "Cancel Task"}
+                    </button>
                     <button
                         onClick={() => setDeleteDialogOpen(true)}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 hover:border-destructive/40"
                     >
                         <Trash2 className="h-3.5 w-3.5" />
                         Delete Task

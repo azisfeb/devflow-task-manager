@@ -2,7 +2,7 @@
 
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Doc, Id } from "../../../convex/_generated/dataModel";
+import { Doc } from "../../../convex/_generated/dataModel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,6 +25,7 @@ import {
     Loader2,
     CheckCircle2,
     Plus,
+    XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -92,6 +93,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
     const updateStatus = useMutation(api.tasks.updateStatus);
     const setPriority = useMutation(api.tasks.setPriority);
     const removeTask = useMutation(api.tasks.remove);
+    const toggleCancel = useMutation(api.tasks.toggleCancel);
 
     const [detailOpen, setDetailOpen] = useState(false);
 
@@ -117,6 +119,16 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
         }
     };
 
+    const handleToggleCancel = async () => {
+        const isRestoring = task.isCancelled;
+        try {
+            await toggleCancel({ id: task._id });
+            toast.success(isRestoring ? "Task restored" : "Task cancelled");
+        } catch {
+            toast.error(isRestoring ? "Failed to restore task" : "Failed to cancel task");
+        }
+    };
+
     return (
         <Draggable draggableId={task._id} index={index}>
             {(provided, snapshot) => (
@@ -127,9 +139,11 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     {...provided.dragHandleProps}
                     className={cn(
                         "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all cursor-pointer",
-                        statusCardConfig[task.status].card,
-                        statusCardConfig[task.status].accent,
-                        task.isCompleted && "opacity-70",
+                        task.isCancelled 
+                            ? "border-dashed border-muted/50 bg-muted/10 opacity-60 hover:opacity-80 [box-shadow:none]"
+                            : statusCardConfig[task.status].card,
+                        !task.isCancelled && statusCardConfig[task.status].accent,
+                        task.isCompleted && !task.isCancelled && "opacity-70",
                         snapshot.isDragging && "shadow-xl border-primary/50 bg-card z-50 ring-2 ring-primary/20"
                     )}
                     style={{
@@ -141,12 +155,16 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                         checked={task.isCompleted}
                         onCheckedChange={handleToggle}
                         onClick={(e) => e.stopPropagation()}
+                        disabled={task.isCancelled}
                         className="h-4.5 w-4.5 rounded-full border-muted-foreground/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                     />
 
                     <div className="flex-1 min-w-0">
                         <p
-                            className="text-sm leading-tight font-medium"
+                            className={cn(
+                                "text-sm leading-tight font-medium",
+                                task.isCancelled && "line-through text-muted-foreground/60"
+                            )}
                         >
                             {task.text}
                         </p>
@@ -206,7 +224,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuSub>
-                                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                                <DropdownMenuSubTrigger className="gap-2 text-xs" disabled={task.isCancelled}>
                                     <status.icon className={cn("h-3.5 w-3.5", status.color)} />
                                     Status
                                 </DropdownMenuSubTrigger>
@@ -229,7 +247,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
                             <DropdownMenuSub>
-                                <DropdownMenuSubTrigger className="gap-2 text-xs">
+                                <DropdownMenuSubTrigger className="gap-2 text-xs" disabled={task.isCancelled}>
                                     <PriorityIcon className="h-3.5 w-3.5" />
                                     Priority
                                 </DropdownMenuSubTrigger>
@@ -251,6 +269,17 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                                     ))}
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="gap-2 text-xs"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleCancel();
+                                }}
+                            >
+                                <XCircle className="h-3.5 w-3.5" />
+                                {task.isCancelled ? "Restore Task" : "Cancel Task"}
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 className="gap-2 text-xs text-destructive focus:text-destructive"

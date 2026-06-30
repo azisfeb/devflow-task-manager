@@ -166,3 +166,21 @@ export const remove = mutation({
         await ctx.db.delete(args.id);
     },
 });
+
+export const toggleCancel = mutation({
+    args: { id: v.id("tasks") },
+    handler: async (ctx, args) => {
+        const task = await ctx.db.get(args.id);
+        if (!task) throw new Error("Task not found");
+
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity || task.userId !== identity.tokenIdentifier) {
+            throw new Error("Not authenticated or unauthorized");
+        }
+
+        await ctx.db.patch(args.id, {
+            isCancelled: !task.isCancelled,
+        });
+    },
+});
+

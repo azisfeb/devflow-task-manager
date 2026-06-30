@@ -29,6 +29,7 @@ export default defineSchema({
     ),
     completedAt: v.optional(v.number()),
     description: v.optional(v.string()),
+    isCancelled: v.optional(v.boolean()),
   })
     .index("by_project", ["projectId"])
     .index("by_user", ["userId"])
