@@ -270,51 +270,60 @@ export function TaskDetailSheet({
 
                 {/* Meta badges */}
                 <div className="flex flex-wrap items-center gap-2 border-b border-border/40 px-6 py-3">
-                    {/* Status */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger disabled={task.isCancelled}>
-                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge, task.isCancelled && "pointer-events-none opacity-50")}>
-                                <StatusIcon className="h-3 w-3" />
-                                {status.label}
-                                <ChevronDown className="h-2.5 w-2.5 opacity-60" />
-                            </div>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-40">
-                            {(Object.entries(statusConfig) as [keyof typeof statusConfig, typeof statusConfig[keyof typeof statusConfig]][]).map(([key, cfg]) => (
-                                <DropdownMenuItem
-                                    key={key}
-                                    className="gap-2 text-xs"
-                                    onClick={() => updateStatus({ id: task._id, status: key })}
-                                >
-                                    <cfg.icon className={cn("h-3.5 w-3.5", cfg.color)} />
-                                    {cfg.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {task.isCancelled ? (
+                        <div className="flex h-6 items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-500/5 px-2.5 text-[11px] font-medium text-rose-500">
+                            <XCircle className="h-3.5 w-3.5" />
+                            Cancelled
+                        </div>
+                    ) : (
+                        <>
+                            {/* Status */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger disabled={task.isCancelled}>
+                                    <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge, task.isCancelled && "pointer-events-none opacity-50")}>
+                                        <StatusIcon className="h-3 w-3" />
+                                        {status.label}
+                                        <ChevronDown className="h-2.5 w-2.5 opacity-60" />
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-40">
+                                    {(Object.entries(statusConfig) as [keyof typeof statusConfig, typeof statusConfig[keyof typeof statusConfig]][]).map(([key, cfg]) => (
+                                        <DropdownMenuItem
+                                            key={key}
+                                            className="gap-2 text-xs"
+                                            onClick={() => updateStatus({ id: task._id, status: key })}
+                                        >
+                                            <cfg.icon className={cn("h-3.5 w-3.5", cfg.color)} />
+                                            {cfg.label}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
-                    {/* Priority */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger disabled={task.isCancelled}>
-                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge, task.isCancelled && "pointer-events-none opacity-50")}>
-                                <PriorityIcon className="h-3 w-3" />
-                                {priority.label}
-                                <ChevronDown className="h-2.5 w-2.5 opacity-60" />
-                            </div>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-40">
-                            {(Object.entries(priorityConfig) as [keyof typeof priorityConfig, typeof priorityConfig[keyof typeof priorityConfig]][]).map(([key, cfg]) => (
-                                <DropdownMenuItem
-                                    key={key}
-                                    className="gap-2 text-xs"
-                                    onClick={() => setPriority({ id: task._id, priority: key })}
-                                >
-                                    <cfg.icon className={cn("h-3.5 w-3.5", cfg.color)} />
-                                    {cfg.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                            {/* Priority */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger disabled={task.isCancelled}>
+                                    <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge, task.isCancelled && "pointer-events-none opacity-50")}>
+                                        <PriorityIcon className="h-3 w-3" />
+                                        {priority.label}
+                                        <ChevronDown className="h-2.5 w-2.5 opacity-60" />
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-40">
+                                    {(Object.entries(priorityConfig) as [keyof typeof priorityConfig, typeof priorityConfig[keyof typeof priorityConfig]][]).map(([key, cfg]) => (
+                                        <DropdownMenuItem
+                                            key={key}
+                                            className="gap-2 text-xs"
+                                            onClick={() => setPriority({ id: task._id, priority: key })}
+                                        >
+                                            <cfg.icon className={cn("h-3.5 w-3.5", cfg.color)} />
+                                            {cfg.label}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </>
+                    )}
                 </div>
 
                 {/* Details row */}
