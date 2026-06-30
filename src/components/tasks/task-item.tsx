@@ -194,26 +194,38 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <Badge
-                            variant="outline"
-                            className={cn(
-                                "h-5 gap-1 border px-1.5 text-[10px] font-medium",
-                                priority.color
-                            )}
-                        >
-                            <PriorityIcon className="h-2.5 w-2.5" />
-                            <span className="hidden sm:inline">{priority.label}</span>
-                        </Badge>
-                        <Badge
-                            variant="outline"
-                            className={cn(
-                                "h-5 gap-1 border px-1.5 text-[10px] font-medium",
-                                status.color
-                            )}
-                        >
-                            <status.icon className="h-2.5 w-2.5" />
-                            <span className="hidden sm:inline">{status.label}</span>
-                        </Badge>
+                        {task.isCancelled ? (
+                            <Badge
+                                variant="outline"
+                                className="h-5 gap-1 border border-rose-500/30 bg-rose-500/5 text-rose-500 px-1.5 text-[10px] font-medium"
+                            >
+                                <XCircle className="h-2.5 w-2.5" />
+                                <span>Cancelled</span>
+                            </Badge>
+                        ) : (
+                            <>
+                                <Badge
+                                    variant="outline"
+                                    className={cn(
+                                        "h-5 gap-1 border px-1.5 text-[10px] font-medium",
+                                        priority.color
+                                    )}
+                                >
+                                    <PriorityIcon className="h-2.5 w-2.5" />
+                                    <span className="hidden sm:inline">{priority.label}</span>
+                                </Badge>
+                                <Badge
+                                    variant="outline"
+                                    className={cn(
+                                        "h-5 gap-1 border px-1.5 text-[10px] font-medium",
+                                        status.color
+                                    )}
+                                >
+                                    <status.icon className="h-2.5 w-2.5" />
+                                    <span className="hidden sm:inline">{status.label}</span>
+                                </Badge>
+                            </>
+                        )}
                     </div>
 
                     <DropdownMenu>
