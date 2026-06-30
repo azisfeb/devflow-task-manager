@@ -140,6 +140,12 @@ export function TaskDetailSheet({
         }
     }, [task?._id]);
 
+    useEffect(() => {
+        if (editor) {
+            editor.setEditable(!task?.isCancelled);
+        }
+    }, [editor, task?.isCancelled]);
+
     const handleTitleSave = async () => {
         if (!task || titleValue.trim() === task.text) {
             setIsTitleEditing(false);
@@ -211,10 +217,12 @@ export function TaskDetailSheet({
                             ) : (
                                 <SheetTitle
                                     className={cn(
-                                        "cursor-text text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors",
+                                        "text-left text-xl font-semibold leading-snug text-foreground hover:text-foreground/80 transition-colors",
+                                        task.isCancelled ? "cursor-default" : "cursor-text",
                                         task.isCancelled && "line-through text-muted-foreground/60"
                                     )}
                                     onClick={() => {
+                                        if (task.isCancelled) return;
                                         setIsTitleEditing(true);
                                         setTimeout(() => titleRef.current?.focus(), 0);
                                     }}
@@ -253,7 +261,7 @@ export function TaskDetailSheet({
                     {/* Status */}
                     <DropdownMenu>
                         <DropdownMenuTrigger>
-                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge)}>
+                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", status.badge, task.isCancelled && "pointer-events-none opacity-50")}>
                                 <StatusIcon className="h-3 w-3" />
                                 {status.label}
                                 <ChevronDown className="h-2.5 w-2.5 opacity-60" />
@@ -276,7 +284,7 @@ export function TaskDetailSheet({
                     {/* Priority */}
                     <DropdownMenu>
                         <DropdownMenuTrigger>
-                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge)}>
+                            <div className={cn("flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-opacity hover:opacity-80", priority.badge, task.isCancelled && "pointer-events-none opacity-50")}>
                                 <PriorityIcon className="h-3 w-3" />
                                 {priority.label}
                                 <ChevronDown className="h-2.5 w-2.5 opacity-60" />
@@ -424,7 +432,12 @@ export function TaskDetailSheet({
 
                     {/* Editor area */}
                     <div
-                        className="flex-1 cursor-text rounded-lg border border-border/40 bg-muted/5 px-4 py-3 transition-colors focus-within:border-border/70 focus-within:bg-background"
+                        className={cn(
+                            "flex-1 rounded-lg border px-4 py-3 transition-colors",
+                            task.isCancelled
+                                ? "border-border/20 bg-muted/5 pointer-events-none opacity-60"
+                                : "cursor-text border-border/40 bg-muted/5 focus-within:border-border/70 focus-within:bg-background"
+                        )}
                         onClick={() => editor?.commands.focus()}
                     >
                         <EditorContent editor={editor} />
@@ -442,7 +455,7 @@ export function TaskDetailSheet({
                             "flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium transition-colors",
                             task.isCancelled
                                 ? "border-muted-foreground/20 bg-muted-foreground/5 text-muted-foreground hover:bg-muted-foreground/10"
-                                : "border-amber-500/20 bg-amber-500/5 text-amber-500 hover:bg-amber-500/10"
+                                : "border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10"
                         )}
                     >
                         <XCircle className="h-3.5 w-3.5" />
