@@ -25,6 +25,7 @@ import {
     Loader2,
     CheckCircle2,
     Plus,
+    XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -92,6 +93,7 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
     const updateStatus = useMutation(api.tasks.updateStatus);
     const setPriority = useMutation(api.tasks.setPriority);
     const removeTask = useMutation(api.tasks.remove);
+    const toggleCancel = useMutation(api.tasks.toggleCancel);
 
     const [detailOpen, setDetailOpen] = useState(false);
 
@@ -127,9 +129,11 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                     {...provided.dragHandleProps}
                     className={cn(
                         "group flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all cursor-pointer",
-                        statusCardConfig[task.status].card,
-                        statusCardConfig[task.status].accent,
-                        task.isCompleted && "opacity-70",
+                        task.isCancelled 
+                            ? "border-muted/50 bg-muted/10 opacity-60 hover:opacity-80 [box-shadow:none]"
+                            : statusCardConfig[task.status].card,
+                        !task.isCancelled && statusCardConfig[task.status].accent,
+                        task.isCompleted && !task.isCancelled && "opacity-70",
                         snapshot.isDragging && "shadow-xl border-primary/50 bg-card z-50 ring-2 ring-primary/20"
                     )}
                     style={{
@@ -141,12 +145,16 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                         checked={task.isCompleted}
                         onCheckedChange={handleToggle}
                         onClick={(e) => e.stopPropagation()}
+                        disabled={task.isCancelled}
                         className="h-4.5 w-4.5 rounded-full border-muted-foreground/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                     />
 
                     <div className="flex-1 min-w-0">
                         <p
-                            className="text-sm leading-tight font-medium"
+                            className={cn(
+                                "text-sm leading-tight font-medium",
+                                task.isCancelled && "line-through text-muted-foreground/60"
+                            )}
                         >
                             {task.text}
                         </p>
@@ -251,6 +259,17 @@ export function TaskItem({ task, index, showProject, projects }: TaskItemProps) 
                                     ))}
                                 </DropdownMenuSubContent>
                             </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="gap-2 text-xs"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleCancel({ id: task._id });
+                                }}
+                            >
+                                <XCircle className="h-3.5 w-3.5" />
+                                {task.isCancelled ? "Restore Task" : "Cancel Task"}
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 className="gap-2 text-xs text-destructive focus:text-destructive"
