@@ -17,6 +17,7 @@ export const list = query({
                         .eq("userId", identity.tokenIdentifier)
                         .eq("projectId", args.projectId!)
                 )
+                .order("desc")
                 .collect();
         }
 
@@ -25,6 +26,7 @@ export const list = query({
             .withIndex("by_user", (q) =>
                 q.eq("userId", identity.tokenIdentifier)
             )
+            .order("desc")
             .collect();
     },
 });
